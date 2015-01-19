@@ -3,6 +3,14 @@
 ## Kristopher Standish ##
 ## January 7, 2014 ##
 
+## CCLE logistic fits (Kuan)
+## 4 parameter fits
+## Fit vs GEX
+## Rank Drugs by quality fit
+ # IQR
+ # LogLik
+## 
+
 #################################################################
 ## POTENTIAL DRUGS ##############################################
 #################################################################
@@ -13,7 +21,7 @@
 ## Potential Drugs of Interest
 DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
 DRUGS.pref2 <- c("Trametinib","MEK-162","PD325901","Palbociclib","MLN0128","INK_128","OSI-027","everolimus","sirilimus","temsirilimus","GSK2141795")
-DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib")
+DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib","Paclitaxel")
 DRUGS.prev <- c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100,101,112,119,122,125,126)
 DRUGS.fit <- c(11,18,33,47,69,122,126)
 DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
@@ -528,6 +536,8 @@ drug_list <- c()
 for (drug in DRUGS.gen) {
 	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
 }
+DONE <- Reduce( union, list(DRUGS.fit, DRUGS.pref2, DRUGS.ccle, DRUGS.prev) )
+drug_list <- setdiff( drug_list, DONE )
 GEXRUN(drug_list)
 
 
