@@ -9,7 +9,7 @@
 #################################################################
 
 ## Set Date/Identifier
-DATE <- "20150119"
+DATE <- "20150121"
 
 ## Load Packages
 library(lcmm)
@@ -177,20 +177,20 @@ SS_FUNC <- deriv( body(MY_FUNC)[[2]], namevec = names(START), function.arg = MY_
 # START <- c(Asym=100, xmid=0, scal=-.5)
 # plot( X_VALS, MY_FUNC( X_VALS, START[1], START[2], START[3] ) )
 # SS_FUNC <- deriv( body(MY_FUNC)[[2]], namevec = names(START), function.arg = MY_FUNC )
-# ## w/ 2 Asym
-# MY_FUNC <- function(Dose, Asym_1, Asym_2, xmid, scal) { Asym_2 + (Asym_1-Asym_2) / (1+exp((xmid-Dose)/scal)) }
-# START <- c(Asym_1=0, Asym_2=100, xmid=0, scal=.5)
-# plot( X_VALS, MY_FUNC( X_VALS, START[1], START[2], START[3] ) )
-# SS_FUNC <- deriv( body(MY_FUNC)[[2]], namevec = names(START), function.arg = MY_FUNC )
+## w/ 2 Asym
+MY_FUNC <- function(Dose, Asym_1, Asym_2, xmid, scal) { Asym_2 + (Asym_1-Asym_2) / (1+exp((xmid-Dose)/scal)) }
+START <- c(Asym_1=0, Asym_2=100, xmid=0, scal=.5)
+plot( X_VALS, MY_FUNC( X_VALS, START[1], START[2], START[3], START[4] ) )
+SS_FUNC <- deriv( body(MY_FUNC)[[2]], namevec = names(START), function.arg = MY_FUNC )
 
 
 ## Make Function to Compute Model & Plot this Shiz
 MUTRUN <- function(drug_list) {
 	## Make Custom Function w/ Starting Values
-	MY_FUNC <- function(Dose, xmid, scal) { 100 / (1+exp((xmid-Dose)/scal)) }
-	START <- c(xmid=0, scal=-.5)
+	 # w/ 2 Asym
+	MY_FUNC <- function(Dose, Asym_1, Asym_2, xmid, scal) { Asym_2 + (Asym_1-Asym_2) / (1+exp((xmid-Dose)/scal)) }
+	START <- c(Asym_1=0, Asym_2=100, xmid=0, scal=.5)
 	SS_FUNC <- deriv( body(MY_FUNC)[[2]], namevec = names(START), function.arg = MY_FUNC )
-
 	for ( DOI in drug_list ) {
 		# DOI <- "DoxorubicinHCl"
 		# DOI <- "Cladribine"
@@ -212,8 +212,7 @@ MUTRUN <- function(drug_list) {
 
 		## Run Nonlinear Fit for all cells (using xmid as Random Effect)
 		print("Running MOD_ALL")
-		MOD_ALL <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START ),T)
-		# MOD_ALL <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START ),T)
+		MOD_ALL <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START ),T)
 		if (is.character(MOD_ALL)==F) {
 			EST_ALL <- coef(MOD_ALL)[[1]]
 			SUM_ALL <- summary(MOD_ALL)
@@ -224,7 +223,7 @@ MUTRUN <- function(drug_list) {
 		## Run Nonlinear Fit for BRAF Mutant Status
 		 # Mutant
 		print("Running MOD_BRAF1")
-		MOD_BRAF1 <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=BRAF==1 ),T)
+		MOD_BRAF1 <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=BRAF==1 ),T)
 		if (is.character(MOD_BRAF1)==F) {
 			EST_BRAF1 <- coef(MOD_BRAF1)[[1]]
 			SUM_BRAF1 <- summary(MOD_BRAF1)
@@ -234,7 +233,7 @@ MUTRUN <- function(drug_list) {
 		}else { EST_BRAF1 <- SUM_BRAF1 <- FIT_BRAF1 <- list() ; LL_BRAF1 <- PAR_BRAF1 <- 0  }
 		 # Wildtype
 		print("Running MOD_BRAF0")
-		MOD_BRAF0 <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=BRAF==-1 ),T)
+		MOD_BRAF0 <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=BRAF==-1 ),T)
 		if (is.character(MOD_BRAF0)==F) {
 			EST_BRAF0 <- coef(MOD_BRAF0)[[1]]
 			SUM_BRAF0 <- summary(MOD_BRAF0)
@@ -245,7 +244,7 @@ MUTRUN <- function(drug_list) {
 		## Run Nonlinear Fit for NRAS Mutant Status
 		 # Mutant
 		print("Running MOD_NRAS1")
-		MOD_NRAS1 <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=NRAS==1 ),T)
+		MOD_NRAS1 <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=NRAS==1 ),T)
 		if (is.character(MOD_NRAS1)==F) {
 			EST_NRAS1 <- coef(MOD_NRAS1)[[1]]
 			SUM_NRAS1 <- summary(MOD_NRAS1)
@@ -255,7 +254,7 @@ MUTRUN <- function(drug_list) {
 		}else { EST_NRAS1 <- SUM_NRAS1 <- FIT_NRAS1 <- list() ; LL_NRAS1 <- PAR_NRAS1 <- 0  }
 		 # Wildtype
 		print("Running MOD_NRAS0")
-		MOD_NRAS0 <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=NRAS==-1 ),T)
+		MOD_NRAS0 <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3, start=START, subset=NRAS==-1 ),T)
 		if (is.character(MOD_NRAS0)==F) {
 			EST_NRAS0 <- coef(MOD_NRAS0)[[1]]
 			SUM_NRAS0 <- summary(MOD_NRAS0)
@@ -318,7 +317,7 @@ MUTRUN <- function(drug_list) {
 				## Re-Run Models ##
 				 # Mutant
 				print("Mut")
-				MOD_BRAF1.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=BRAF==1 ),T)
+				MOD_BRAF1.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=BRAF==1 ),T)
 				if (is.character(MOD_BRAF1.perm)==F) {
 					EST_BRAF1.perm <- coef(MOD_BRAF1.perm)[[1]]
 					SUM_BRAF1.perm <- summary(MOD_BRAF1.perm)
@@ -328,7 +327,7 @@ MUTRUN <- function(drug_list) {
 				}else { EST_BRAF1.perm <- SUM_BRAF1.perm <- FIT_BRAF1.perm <- list() ; LL_BRAF1.perm <- PAR_BRAF1.perm <- 0  }
 				 # Wildtype
 				print("Wild")
-				MOD_BRAF0.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=BRAF==-1 ),T)
+				MOD_BRAF0.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=BRAF==-1 ),T)
 				if (is.character(MOD_BRAF0.perm)==F) {
 					EST_BRAF0.perm <- coef(MOD_BRAF0.perm)[[1]]
 					SUM_BRAF0.perm <- summary(MOD_BRAF0.perm)
@@ -362,7 +361,7 @@ MUTRUN <- function(drug_list) {
 				## Re-Run Models ##
 				 # Mutant
 				print("Mut")
-				MOD_NRAS1.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=NRAS==1 ),T)
+				MOD_NRAS1.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=NRAS==1 ),T)
 				if (is.character(MOD_NRAS1.perm)==F) {
 					EST_NRAS1.perm <- coef(MOD_NRAS1.perm)[[1]]
 					SUM_NRAS1.perm <- summary(MOD_NRAS1.perm)
@@ -372,7 +371,7 @@ MUTRUN <- function(drug_list) {
 				}else { EST_NRAS1.perm <- SUM_NRAS1.perm <- FIT_NRAS1.perm <- list() ; LL_NRAS1.perm <- PAR_NRAS1.perm <- 0  }
 				 # Wildtype
 				print("Wild")
-				MOD_NRAS0.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=NRAS==-1 ),T)
+				MOD_NRAS0.perm <- try(nlmer( Resp ~ SS_FUNC(Dose, Asym_1, Asym_2, xmid, scal) ~ xmid | Cell, data=DAT.3.perm, start=START, subset=NRAS==-1 ),T)
 				if (is.character(MOD_NRAS0.perm)==F) {
 					EST_NRAS0.perm <- coef(MOD_NRAS0.perm)[[1]]
 					SUM_NRAS0.perm <- summary(MOD_NRAS0.perm)
@@ -416,7 +415,7 @@ MUTRUN <- function(drug_list) {
 		X_VALS <- seq(-2,2,.01)
 		FIT_COLS.BRAF <- c("dodgerblue3","black","grey40")
 		FIT_COLS.NRAS <- c("firebrick3","black","grey40")
-		png(paste(PathToSave,"PL_2-NLME_Cell_Mut_",DOI,".png",sep=""), width=2000,height=1000,pointsize=24)
+		png(paste(PathToSave,"PL_4p-NLME_Cell_Mut_",DOI,".png",sep=""), width=2000,height=1000,pointsize=24)
 		par(mfrow=c(1,2))
 		## Plot BRAF Data
 		print("### Plotting BRAF Split ###")
@@ -428,20 +427,20 @@ MUTRUN <- function(drug_list) {
 		BRAF_COLS <- PCH_COLS.BRAF[factor(DAT.3$BRAF[seq(1,540,9)])]
 		if (is.character(MOD_ALL)==F) {
 			for (i in 1:nrow(EST_ALL) ) {
-				Y_VALS <- MY_FUNC( X_VALS, EST_ALL$xmid[i], EST_ALL$scal[i] )
+				Y_VALS <- MY_FUNC( X_VALS, EST_ALL$Asym_1[i], EST_ALL$Asym_2[i], EST_ALL$xmid[i], EST_ALL$scal[i] )
 				points(X_VALS,Y_VALS, type="l", col=BRAF_COLS[i] )
 			}
-			Y_VALS <- MY_FUNC( X_VALS, FIT_ALL["xmid","Estimate"], FIT_ALL["scal","Estimate"] )
+			Y_VALS <- MY_FUNC( X_VALS, FIT_ALL["Asym_1","Estimate"], FIT_ALL["Asym_2","Estimate"], FIT_ALL["xmid","Estimate"], FIT_ALL["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[2], lwd=6, lty=2)
 		}
 		print("Plotting Mutant")
-		if (is.character(MOD_BRAF0)==F) {
-			Y_VALS <- MY_FUNC( X_VALS, FIT_BRAF1["xmid","Estimate"], FIT_BRAF1["scal","Estimate"] )
+		if (is.character(MOD_BRAF1)==F) {
+			Y_VALS <- MY_FUNC( X_VALS, FIT_BRAF1["Asym_1","Estimate"], FIT_BRAF1["Asym_2","Estimate"], FIT_BRAF1["xmid","Estimate"], FIT_BRAF1["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
-		if (is.character(MOD_BRAF1)==F) {
-			Y_VALS <- MY_FUNC( X_VALS, FIT_BRAF0["xmid","Estimate"], FIT_BRAF0["scal","Estimate"] )
+		if (is.character(MOD_BRAF0)==F) {
+			Y_VALS <- MY_FUNC( X_VALS, FIT_BRAF0["Asym_1","Estimate"], FIT_BRAF0["Asym_2","Estimate"], FIT_BRAF0["xmid","Estimate"], FIT_BRAF0["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_BRAF0!=0 & LL_BRAF1!=0 ) {
@@ -463,20 +462,20 @@ MUTRUN <- function(drug_list) {
 		NRAS_COLS <- PCH_COLS.NRAS[factor(DAT.3$NRAS[seq(1,540,9)])]
 		if (is.character(MOD_ALL)==F) {
 			for (i in 1:nrow(EST_ALL) ) {
-				Y_VALS <- MY_FUNC( X_VALS, EST_ALL$xmid[i], EST_ALL$scal[i] )
+				Y_VALS <- MY_FUNC( X_VALS, EST_ALL$Asym_1[i], EST_ALL$Asym_2[i], EST_ALL$xmid[i], EST_ALL$scal[i] )
 				points(X_VALS,Y_VALS, type="l", col=NRAS_COLS[i] )
 			}
-			Y_VALS <- MY_FUNC( X_VALS, FIT_ALL["xmid","Estimate"], FIT_ALL["scal","Estimate"] )
+			Y_VALS <- MY_FUNC( X_VALS, FIT_ALL["Asym_1","Estimate"], FIT_ALL["Asym_2","Estimate"], FIT_ALL["xmid","Estimate"], FIT_ALL["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[2], lwd=6, lty=2)
 		}
 		print("Plotting Mutant")
 		if (is.character(MOD_NRAS1)==F) {
-			Y_VALS <- MY_FUNC( X_VALS, FIT_NRAS1["xmid","Estimate"], FIT_NRAS1["scal","Estimate"] )
+			Y_VALS <- MY_FUNC( X_VALS, FIT_NRAS1["Asym_1","Estimate"], FIT_NRAS1["Asym_2","Estimate"], FIT_NRAS1["xmid","Estimate"], FIT_NRAS1["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
 		if (is.character(MOD_NRAS0)==F) {
-			Y_VALS <- MY_FUNC( X_VALS, FIT_NRAS0["xmid","Estimate"], FIT_NRAS0["scal","Estimate"] )
+			Y_VALS <- MY_FUNC( X_VALS, FIT_NRAS0["Asym_1","Estimate"], FIT_NRAS0["Asym_2","Estimate"], FIT_NRAS0["xmid","Estimate"], FIT_NRAS0["scal","Estimate"] )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_NRAS0!=0 & LL_NRAS1!=0 ) {
@@ -495,6 +494,22 @@ MUTRUN <- function(drug_list) {
 
 ## Potential Drugs of Interest
 DRUG_LIST <- names(DAT.2)[7:134]
+
+## Priority Drug List
+DRUGS.priority <- c("MLN9708","Palbociclib","Dacomitinib","MEK162","Vorinostat","IrinotecanHCl","TopotecanHCl","Bosutinib","Crizotinib","Sunitinib","Sorafenib")
+ # Get actual names used for Drugs on a list (WHICH_LIST)
+WHICH_LIST <- DRUGS.priority
+drug_list <- c()
+for (drug in WHICH_LIST) {
+	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
+}
+drug_list <- unique( drug_list )
+ # Run all drugs
+MUTRUN(drug_list)
+
+
+
+
 # DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
 DRUGS.pref2 <- c("Trametinib","MEK162","PD325901","Palbociclib","MLN0128","INK128","OSI027","Everolimus","Sirilimus","Temsirilimus","GSK2141795")
 DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib")
@@ -502,7 +517,6 @@ DRUGS.prev <- DRUG_LIST[ c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100
 DRUGS.fit <- DRUG_LIST[ c(11,18,33,47,69,122,126) ]
 DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
 DRUGS.su2c <- c("Adriamycin","Bortezomib","Carboplatin","Dacarbazine","Dasatinib","Erlotinib","Etoposide","Gemcitabine","Imatinib","Interferon","Paclitaxel","Pemetrexed","Sorafenib","Temozolomide","Vorinostat","MLN8237","Alisertib","MLN9708","PF00299804","Dacomitin","PD0332991","Palbociclib","PLX3397","MEK162","BGJ398","Cometriq","Cabozantinib","GSK1120212","Trametinib","GSK2141795","AMG337","LY2157299","MLN1117","MLN0128","INK128","MLN2480","LEE011","MEK162","Axatinib","Bosulif","Bosutinib","Sutent","Sunitinib","Torisel","Temsirolimus","Xalkori","Crizotinib")
-DRUGS.clin <- c("MLN9708")
 DRUGS.all <- Reduce( union, list( DRUGS.pref2, DRUGS.ccle, DRUGS.prev, DRUGS.fit, DRUGS.gen, DRUGS.su2c) )
 
 ## Get actual names used for Drugs on a list (WHICH_LIST)

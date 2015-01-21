@@ -1,30 +1,8 @@
 ## SU2C Data: Logistic Fit, permuting for significance ##
-## Mixed Effects Models vs Gene Expression ##
+## Mixed Effects Models vs Mutation Status ##
+## 3 Parameter Fit ##
 ## Kristopher Standish ##
 ## January 7, 2014 ##
-
-## CCLE logistic fits (Kuan)
-## 4 parameter fits
-## Fit vs GEX
-## Rank Drugs by quality fit
- # IQR
- # LogLik
-## 
-
-#################################################################
-## POTENTIAL DRUGS ##############################################
-#################################################################
-
-## Old Version of what to plot
-# TO_PLOT <- c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100,101,112,119,122,125,126)
-
-## Potential Drugs of Interest
-DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
-DRUGS.pref2 <- c("Trametinib","MEK-162","PD325901","Palbociclib","MLN0128","INK_128","OSI-027","everolimus","sirilimus","temsirilimus","GSK2141795")
-DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib","Paclitaxel")
-DRUGS.prev <- c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100,101,112,119,122,125,126)
-DRUGS.fit <- c(11,18,33,47,69,122,126)
-DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
 
 #################################################################
 ## GET ORGANIZED ################################################
@@ -189,7 +167,7 @@ DOSES <- unique(DAT.2$Dose_Value)
 CELL_LINES <- as.character(unique(DAT.2$Cell))
 
 ## Make Function to Compute Model & Plot this Shiz
-GEXRUN <- function(drug_list) {
+MUTRUN <- function(drug_list) {
 	for ( DOI in drug_list ) {
 		# DOI <- "DoxorubicinHCl"
 		# DOI <- "Cladribine"
@@ -411,11 +389,11 @@ GEXRUN <- function(drug_list) {
 
 		###########################################
 		## Plot Fits based on Model Coefficients ##
-		PCH_COLS.BRAF <- c("grey70","dodgerblue1")
-		PCH_COLS.NRAS <- c("grey70","firebrick1")
+		PCH_COLS.BRAF <- c("dodgerblue1","grey70")
+		PCH_COLS.NRAS <- c("firebrick1","grey70")
 		X_VALS <- seq(-2,2,.01)
-		FIT_COLS.BRAF <- c("grey40","black","dodgerblue3")
-		FIT_COLS.NRAS <- c("grey40","black","firebrick3")
+		FIT_COLS.BRAF <- c("dodgerblue3","black","grey40")
+		FIT_COLS.NRAS <- c("firebrick3","black","grey40")
 		png(paste(PathToSave,"PL_1-NLME_Cell_Mut_",DOI,".png",sep=""), width=2000,height=1000,pointsize=24)
 		par(mfrow=c(1,2))
 		## Plot BRAF Data
@@ -435,13 +413,13 @@ GEXRUN <- function(drug_list) {
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[2], lwd=6, lty=2)
 		}
 		print("Plotting Mutant")
-		if (is.character(MOD_BRAF0)==F) {
-			Y_VALS <- FIT_BRAF0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF0["xmid","Estimate"]) / FIT_BRAF0["scal","Estimate"] ) )
+		if (is.character(MOD_BRAF1)==F) {
+			Y_VALS <- FIT_BRAF1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF1["xmid","Estimate"]) / FIT_BRAF0["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
-		if (is.character(MOD_BRAF1)==F) {
-			Y_VALS <- FIT_BRAF1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF1["xmid","Estimate"]) / FIT_BRAF1["scal","Estimate"] ) )
+		if (is.character(MOD_BRAF0)==F) {
+			Y_VALS <- FIT_BRAF0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF0["xmid","Estimate"]) / FIT_BRAF1["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_BRAF0!=0 & LL_BRAF1!=0 ) {
@@ -452,7 +430,7 @@ GEXRUN <- function(drug_list) {
 		if ( length(which(Y_VALS>60))/length(Y_VALS) > .5 ) {
 			LEG.coords <- c(-2,50)
 		}else{ LEG.coords <- c(.75,118) }
-		legend( LEG.coords[1],LEG.coords[2], legend=c("Line - BRAF+","Line - BRAF-","Fit - ALL","Fit - BRAF+","Fit - BRAF-"),lty=c(1,1,2,2,2),col=c(PCH_COLS.BRAF,FIT_COLS.BRAF), lwd=c(1,1,6,6,6) )
+		legend( LEG.coords[1],LEG.coords[2], legend=c("Line - BRAF+","Line - BRAF-","Fit - ALL","Fit - BRAF+","Fit - BRAF-"),lty=c(1,1,2,2,2),col=c(PCH_COLS.BRAF,FIT_COLS.BRAF[c(2,1,3)]), lwd=c(1,1,6,6,6) )
 		## Plot NRAS Data
 		print("### Plotting NRAS Split ###")
 		print("Plotting Empty Plot and MOD_ALL")
@@ -470,94 +448,62 @@ GEXRUN <- function(drug_list) {
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[2], lwd=6, lty=2)
 		}
 		print("Plotting Mutant")
-		if (is.character(MOD_NRAS0)==F) {
-			Y_VALS <- FIT_NRAS0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS0["xmid","Estimate"]) / FIT_NRAS0["scal","Estimate"] ) )
+		if (is.character(MOD_NRAS1)==F) {
+			Y_VALS <- FIT_NRAS1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS1["xmid","Estimate"]) / FIT_NRAS0["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
-		if (is.character(MOD_NRAS1)==F) {
-			Y_VALS <- FIT_NRAS1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS1["xmid","Estimate"]) / FIT_NRAS1["scal","Estimate"] ) )
+		if (is.character(MOD_NRAS0)==F) {
+			Y_VALS <- FIT_NRAS0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS0["xmid","Estimate"]) / FIT_NRAS1["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_NRAS0!=0 & LL_NRAS1!=0 ) {
 			text(-2,10, pos=4, labels=paste("Permutation-Based P-Value (",p.NRAS,")",sep=""), col="black")
-			text(-2,5, pos=4, labels=formatC(P_PERM["NRAS"],digits=2,format="e") ) # paste("p =",formatC(P_PERM,2,format="e")) )
+			text(-2,5, pos=4, labels=formatC(P_PERM["NRAS"],digits=2,format="e") )
 		}
 		## Legend
-		legend( LEG.coords[1],LEG.coords[2], legend=c("Line - NRAS+","Line - NRAS-","Fit - ALL","Fit - NRAS+","Fit - NRAS-"),lty=c(1,1,2,2,2),col=c(PCH_COLS.NRAS,FIT_COLS.NRAS), lwd=c(1,1,6,6,6) )
+		legend( LEG.coords[1],LEG.coords[2], legend=c("Line - NRAS+","Line - NRAS-","Fit - ALL","Fit - NRAS+","Fit - NRAS-"),lty=c(1,1,2,2,2),col=c(PCH_COLS.NRAS,FIT_COLS.NRAS[c(2,1,3)]), lwd=c(1,1,6,6,6) )
 		dev.off()
 	}
-} # Close GEXRUN function
+} # Close MUTRUN function
 
 #################################################################
 ## RUN IT #######################################################
-############# GEXRUN(drug_name,start,stop) ######################
+############# MUTRUN(drug_name,start,stop) ######################
 
 ## Potential Drugs of Interest
-# DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
 DRUG_LIST <- names(DAT.2)[7:134]
+# DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
 DRUGS.pref2 <- c("Trametinib","MEK162","PD325901","Palbociclib","MLN0128","INK128","OSI027","Everolimus","Sirilimus","Temsirilimus","GSK2141795")
 DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib")
 DRUGS.prev <- DRUG_LIST[ c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100,101,112,119,122,125,126) ]
 DRUGS.fit <- DRUG_LIST[ c(11,18,33,47,69,122,126) ]
 DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
+DRUGS.su2c <- c("Adriamycin","Bortezomib","Carboplatin","Dacarbazine","Dasatinib","Erlotinib","Etoposide","Gemcitabine","Imatinib","Interferon","Paclitaxel","Pemetrexed","Sorafenib","Temozolomide","Vorinostat","MLN8237","Alisertib","MLN9708","PF00299804","Dacomitin","PD0332991","Palbociclib","PLX3397","MEK162","BGJ398","Cometriq","Cabozantinib","GSK1120212","Trametinib","GSK2141795","AMG337","LY2157299","MLN1117","MLN0128","INK128","MLN2480","LEE011","MEK162","Axatinib","Bosulif","Bosutinib","Sutent","Sunitinib","Torisel","Temsirolimus","Xalkori","Crizotinib")
+DRUGS.all <- Reduce( union, list( DRUGS.pref2, DRUGS.ccle, DRUGS.prev, DRUGS.fit, DRUGS.gen, DRUGS.su2c) )
 
-## Get actual names of Drugs from DRUGS.pref
-# drug_list <- c()
-# for (drug in DRUGS.pref) {
-# 	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
-# }
-# GEXRUN(drug_list)
-
-## Get actual names of Drugs from DRUGS.ccle
+## Get actual names used for Drugs on a list (WHICH_LIST)
+WHICH_LIST <- DRUGS.all
 drug_list <- c()
-for (drug in DRUGS.ccle) {
+for (drug in WHICH_LIST) {
 	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
 }
-GEXRUN(drug_list)
-
-## Get actual names of Drugs from DRUGS.pref2
-drug_list <- c()
-for (drug in DRUGS.pref2) {
-	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
-}
-GEXRUN(drug_list)
-
-## Run for list of good fits
-GEXRUN(DRUGS.fit)
-
-## Run for previous list (i think of good fits)
-DONE <- Reduce( union, list(DRUGS.fit, DRUGS.pref2, DRUGS.ccle) )
-drug_list <- setdiff( DRUGS.prev, DONE )
-GEXRUN(drug_list)
-
-## Get actual names of Drugs from DRUGS.gen
-drug_list <- c()
-for (drug in DRUGS.gen) {
-	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
-}
-DONE <- Reduce( union, list(DRUGS.fit, DRUGS.pref2, DRUGS.ccle, DRUGS.prev) )
-drug_list <- setdiff( drug_list, DONE )
-GEXRUN(drug_list)
-
-
-# GEXRUN("DoxorubicinHCl")
-# GEXRUN("Dacarbazine")
-# GEXRUN("Sorafenib")
-# GEXRUN("Etoposide")
-# GEXRUN("Vorinostat",1,0)
-# GEXRUN("CabozantinibXL184",1,0)
-# GEXRUN("DacomitinibPF299804",1,0)
-# GEXRUN("MLN2480",1,0)
-# GEXRUN("Sunitinib",1,0)
-# GEXRUN("PalbociclibPD0332991Isethionate",1,0)
-
-## Look into:
-#1) Trametinib - 103
-#1b) MEK162 (????) - 108
-#2) Palbociclib - 106
-#3) MLN0128 - 105
-#4) GSK2141795 - ??????
+drug_list <- unique( drug_list )
+ # Run all drugs
+MUTRUN(drug_list)
 
 
 
+
+
+
+
+
+
+
+
+
+
+#################################################################
+## END OF DOC ###################################################
+#################################################################

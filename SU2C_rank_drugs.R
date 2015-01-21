@@ -227,11 +227,33 @@ RANK.slow <- function(drug_list) {
 		 # Check for convergence
 		WARN <- warnings()
 		if ( any( grepl("failure to converge",WARN)) ) {
-			COMP.mem[,"Conv"] <- 0
-		}else{ COMP.mem[,"Conv"] <- 1 }
+			COMP.mem[d,"Conv"] <- 0
+		}else{ COMP.mem[d,"Conv"] <- 1 }
+
+		## Plot Fit
+		X_VALS <- seq(-2,2,.01)
+		COLS <- c("chartreuse1","chartreuse3","black")
+		png(paste(PathToSave,"PL_2-NLME_Cell_Mut_",DOI,".png",sep=""), width=1200,height=1200,pointsize=24)
+		## Plot BRAF Data
+		print("### Plotting BRAF Split ###")
+		print("Plotting Empty Plot and MOD_ALL")
+		plot(0,0,type="n", xlim=range(X_VALS), ylim=c(0,120), xlab="Concentration log10(mM)", ylab="% Cell Viability", main=paste("BRAF Mut & Dose-Resp - ",DOI,sep=""))
+		abline( h=seq(0,200,20), col="grey50", lty=c(1,2,2,2,2,1,2,2,2,2,1) )
+		abline( v=seq(-3,3,1), col="grey50", lty=2 )
+		points(DAT.3[,"Dose"],DAT.3[,"Resp"], pch="+", col=COLS[1] )
+		if (is.character(MOD_ALL)==F) {
+			for (i in 1:nrow(EST_ALL) ) {
+				Y_VALS <- EST_ALL$Asym[i] / ( 1 + exp( -(X_VALS - EST_ALL$xmid[i]) / EST_ALL$scal[i] ) )	
+				points(X_VALS,Y_VALS, type="l", col=COLS[2] )
+			}
+			Y_VALS <- FIT_ALL["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_ALL["xmid","Estimate"]) / FIT_ALL["scal","Estimate"] ) )
+			points(X_VALS,Y_VALS, type="l", col=COLS[3], lwd=6, lty=2)
+		}
+		dev.off()
 
 		## DONE ##
 	} # Close Drug Loop
+	return(COMP.mem)
 } # Close "RANK.slow" Function
 # RANKOUT.2 <- RANK.slow( DRUG_LIST )
 
@@ -242,7 +264,100 @@ RANK.slow <- function(drug_list) {
 ## Do Quick Ranking for ALL Drugs
 WHICH_LIST <- DRUG_LIST
 RANKOUT.1 <- RANK.fast( WHICH_LIST )
+RANKOUT.2 <- RANK.slow( WHICH_LIST )
 n.DRUGS <- length( WHICH_LIST )
+
+## Start Filtering RANKOUT.2
+write.table( RANKOUT.2, paste(PathToSave,"Rankout2.txt",sep=""), sep="\t",row.names=T, col.names=T, quote=F )
+ # Convergence
+FIL.1 <- which( !is.na( RANKOUT.2[,1] ) )
+RANK.2.1 <- RANKOUT.2[FIL.1,]
+ # Reasonable Asymptote
+FIL.2 <- which( RANK.2.1[,1] < 200 & RANK.2.1[,1] > 50 )
+RANK.2.2 <- RANK.2.1[FIL.2,]
+ # Reasonable xmid
+FIL.3 <- which( RANK.2.2[,2] < 4 & RANK.2.2[,2] > -4 )
+RANK.2.3 <- RANK.2.2[FIL.3,]
+ # Reasonable scal
+FIL.4 <- which( RANK.2.3[,3] > -2 )
+RANK.2.4 <- RANK.2.3[FIL.4,]
+ # Sort by ____
+RANK.2.4[order(RANK.2.4[,4]),]
+RANK.2.4[order(RANK.2.4[,3]),]
+RANK.2.4[order(RANK.2.4[,2]),]
+RANK.2.4[order(RANK.2.4[,1]),]
+
+## Calculate Diversion from Expected for Ranking (higher rank is worse)
+ # Diversion from 100 for Asymptote
+RANK.2.4.1 <- rank( abs( RANK.2.4[,1]-100 ) )
+plot( RANK.2.4[,1], RANK.2.4.1 )
+ # Diversion from 0 for xmid
+RANK.2.4.2 <- rank( abs( RANK.2.4[,2]+.5 ) )
+plot( RANK.2.4[,2], RANK.2.4.2 )
+ # Diversion from mean for scal
+RANK.2.4.3 <- rank( abs( RANK.2.4[,3]-median(RANK.2.4[,3]) ) )
+plot( RANK.2.4[,3], RANK.2.4.3 )
+ # Compile Ranks
+RANK.2.5 <- data.frame( ASYM=RANK.2.4.1, XMID=RANK.2.4.2, SCAL=RANK.2.4.3 )
+RANK.2.5 <- data.frame( RANK.2.5, MEAN=rowMeans(RANK.2.5) )
+RANK.2.5 <- RANK.2.5[order(RANK.2.5$MEAN),]
+
+par(mfrow=c(1,3))
+RANK.2.1.1 <- rank( abs( RANK.2.1[,1]-100 ) )
+plot( RANK.2.1[,1], RANK.2.1.1 )
+ # Diversion from 0 for xmid
+RANK.2.1.2 <- rank( abs( RANK.2.1[,2]+0.5 ) )
+plot( RANK.2.1[,2], RANK.2.1.2 )
+ # Diversion from mean for scal
+RANK.2.1.3 <- rank( abs( RANK.2.1[,3]+0.5 ) )
+plot( RANK.2.1[,3], RANK.2.1.3 )
+ # Compile Ranks
+RANK.2.5 <- data.frame( ASYM=RANK.2.1.1, XMID=RANK.2.1.2, SCAL=RANK.2.1.3 )
+RANK.2.5 <- data.frame( RANK.2.5, MEAN=rowMeans(RANK.2.5) )
+RANK.2.5 <- RANK.2.5[order(RANK.2.5$MEAN),]
+
+par(mfrow=c(1,3))
+RANKOUT.2.1 <- rank( abs( RANKOUT.2[,1]-105 ), tie="average" )
+plot( RANKOUT.2[,1], RANKOUT.2.1 )
+ # Diversion from 0 for xmid
+RANKOUT.2.2 <- rank( abs( RANKOUT.2[,2]+0.5 ), tie="average" )
+plot( RANKOUT.2[,2], RANKOUT.2.2 )
+ # Diversion from mean for scal
+RANKOUT.2.3 <- rank( abs( RANKOUT.2[,3]+0.5 ), tie="average" )
+plot( RANKOUT.2[,3], RANKOUT.2.3 )
+ # Set missing values to worst rank
+RANKOUT.2.1[which(is.na(RANKOUT.2[,1]))] <- nrow(RANKOUT.2)
+RANKOUT.2.2[which(is.na(RANKOUT.2[,2]))] <- nrow(RANKOUT.2)
+RANKOUT.2.3[which(is.na(RANKOUT.2[,3]))] <- nrow(RANKOUT.2)
+ # Compile Ranks
+RANK.2.5 <- data.frame( ASYM=RANKOUT.2.1, XMID=RANKOUT.2.2, SCAL=RANKOUT.2.3 )
+RANK.2.5.MEANS <- ( RANK.2.5[,2:3] + .3*RANK.2.5[,1] ) / 2.3
+RANK.2.5 <- data.frame( RANK.2.5, MEAN=rowMeans(RANK.2.5) )
+RANK.2.5 <- RANK.2.5[order(RANK.2.5$MEAN),]
+RANK.2.5 <- data.frame( RANK.2.5, SCORE=(nrow(RANK.2.5)-RANK.2.5$MEAN)/nrow(RANK.2.5) )
+png(paste(PathToSave,"PL_3-Drug_Fit_Score.png",sep=""), width=2400,height=2400,pointsize=24)
+par(mfrow=c(2,1))
+par(mar=c(9,5,5,4) )
+XLIM <- c( 0, nrow(RANK.2.5) )
+YLIM <- c( 0, 1 )
+plot( 0,0,type="n", xlim=XLIM, ylim=YLIM, main="Drug Rank by Quality of Fit", xlab="", ylab="Score", xaxt="n" )
+axis( 1, at=1:nrow(RANK.2.5), label=rownames(RANK.2.5), las=2 )
+abline( h=seq(0,1,.1), lty=2, col="grey50" )
+points( 1:nrow(RANK.2.5), RANK.2.5$SCORE, pch="+", col="slateblue3", cex=1.5 )
+# Better Fits
+RANK.2.6 <- RANK.2.5[1:50,]
+XLIM <- c( 0, nrow(RANK.2.6) )
+YLIM <- c( 0, 1 )
+plot( 0,0,type="n", xlim=XLIM, ylim=YLIM, main="Drug Rank by Quality of Fit", xlab="", ylab="Score", xaxt="n" )
+axis( 1, at=1:nrow(RANK.2.6), label=rownames(RANK.2.6), las=2 )
+abline( h=seq(0,1,.1), lty=2, col="grey50" )
+points( 1:nrow(RANK.2.6), RANK.2.6$SCORE, pch="+", col="slateblue3", cex=2 )
+dev.off()
+
+
+
+
+
 
 ## Pull out data.frames
  # IQR
