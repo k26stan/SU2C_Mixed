@@ -518,7 +518,7 @@ DRUGS.fit <- DRUG_LIST[ c(11,18,33,47,69,122,126) ]
 DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
 DRUGS.su2c <- c("Adriamycin","Bortezomib","Carboplatin","Dacarbazine","Dasatinib","Erlotinib","Etoposide","Gemcitabine","Imatinib","Interferon","Paclitaxel","Pemetrexed","Sorafenib","Temozolomide","Vorinostat","MLN8237","Alisertib","MLN9708","PF00299804","Dacomitin","PD0332991","Palbociclib","PLX3397","MEK162","BGJ398","Cometriq","Cabozantinib","GSK1120212","Trametinib","GSK2141795","AMG337","LY2157299","MLN1117","MLN0128","INK128","MLN2480","LEE011","MEK162","Axatinib","Bosulif","Bosutinib","Sutent","Sunitinib","Torisel","Temsirolimus","Xalkori","Crizotinib")
 DRUGS.all <- Reduce( union, list( DRUGS.pref2, DRUGS.ccle, DRUGS.prev, DRUGS.fit, DRUGS.gen, DRUGS.su2c) )
-
+DRUGS.all <- setdiff( DRUGS.all, DRUGS.priority )
 ## Get actual names used for Drugs on a list (WHICH_LIST)
 WHICH_LIST <- DRUGS.all
 drug_list <- c()
