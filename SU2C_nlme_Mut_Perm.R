@@ -9,7 +9,7 @@
 #################################################################
 
 ## Set Date/Identifier
-DATE <- "20150121"
+DATE <- "20150123"
 
 ## Load Packages
 library(lcmm)
@@ -99,64 +99,6 @@ iline <- as.numeric(factor(iline1))
 DAT.2 <- data.frame( DAT.comp, iline, Batch=rep(2,nrow(DAT.comp)) )
 BATCH_1 <- which( DAT.comp$Cell %in% OLD_LINES )
 DAT.2$Batch[BATCH_1] <- 1
-
-# #################################################################
-# ## LOAD GENE EXPRESSION DATA ####################################
-# #################################################################
-
-# TOP <- GTOP <- list()
-
-# ## Load Top Genes and Expression Data
-
-#  # Top Gene Names
-# TOP$dox <- read.table(paste(PathToTop2,"doxorubicin_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$dox) <- c("Probe","Gene","P")
-# TOP$iri <- read.table(paste(PathToTop3,"Irinotecan_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$iri) <- c("Probe","Gene","P")
-# TOP$top <- read.table(paste(PathToTop3,"Topotecan_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$top) <- c("Probe","Gene","P")
-
-#  # Top Expression Values
-# GTOP$dox.1 <- read.table(paste(PathToTop2,"doxorubicin_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$dox.1)[1] <- c("Probe")
-# GTOP$iri.1 <- read.table(paste(PathToTop3,"Irinotecan_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$iri.1)[1] <- c("Probe")
-# GTOP$top.1 <- read.table(paste(PathToTop3,"Topotecan_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$top.1)[1] <- c("Probe")
-
-# #################################################################
-# ## ORGANIZE GENE EXPRESSION DATA ################################
-# #################################################################
-
-# ## Specify Drug Names
-# ALL_DRUGS <- colnames(DAT.1)[7:134]
-# BTOP <- KEY <- GEX <- KEYS <- list()
-#  # and Shorthand
-# DRUG_SHORT_HAND <- c("dox","iri","top")
-# names(DRUG_SHORT_HAND) <- c( "DoxorubicinHCl","IrinotecanHCl","TopotecanHCl")
-
-# ## Loop through Drugs of Interest
-# for ( drug in DRUG_SHORT_HAND ) {
-# 	## Create Gene-Probe Key
-# 	KEY[[drug]] <- TOP[[drug]][which(!duplicated(TOP[[drug]]$Probe)),c("Gene","Probe")]
-# 	KEY[[drug]] <- data.frame(KEY[[drug]],TAG=paste(KEY[[drug]]$Gene,KEY[[drug]]$Probe,sep="_"))
-# 	KEY[[drug]]$TAG <- gsub("---",".",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub("-",".",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub(" ","",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub("///",".",KEY[[drug]]$TAG, fixed=T)	
-	
-# 	## Give Expression Values Gene Names
-# 	GTOP[[drug]] <- merge(KEY[[drug]],GTOP[[paste(drug,".1",sep="")]])
-# 	BTOP[[drug]] <- data.frame(GTOP[[drug]][,4:ncol(GTOP[[drug]])])
-# 	for ( which_gene in 1:nrow(BTOP[[drug]]) ) {
-# 		BTOP[[drug]][which_gene,] <- as.numeric( as.numeric(BTOP[[drug]][which_gene,]) > median(as.numeric(BTOP[[drug]][which_gene,])) )
-# 	} # apply(GTOP[,2:ncol(GTOP)],2,median) )
-# 	rownames(BTOP[[drug]]) <- GTOP[[drug]]$TAG
-
-# 	## Compile GEX data into list
-# 	GEX[[drug]] <- t( BTOP[[drug]] )
-# 	KEYS[[drug]] <- data.frame(GTOP[[drug]][,1:3],PAREN=paste(GTOP[[drug]][,2]," (",GTOP[[drug]][,1],")",sep=""))
-# }
 
 #################################################################
 ## USE NLME TO FIT LOGISTIC MODELS ##############################
@@ -414,12 +356,12 @@ MUTRUN <- function(drug_list) {
 		}
 		print("Plotting Mutant")
 		if (is.character(MOD_BRAF1)==F) {
-			Y_VALS <- FIT_BRAF1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF1["xmid","Estimate"]) / FIT_BRAF0["scal","Estimate"] ) )
+			Y_VALS <- FIT_BRAF1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF1["xmid","Estimate"]) / FIT_BRAF1["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
 		if (is.character(MOD_BRAF0)==F) {
-			Y_VALS <- FIT_BRAF0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF0["xmid","Estimate"]) / FIT_BRAF1["scal","Estimate"] ) )
+			Y_VALS <- FIT_BRAF0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_BRAF0["xmid","Estimate"]) / FIT_BRAF0["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.BRAF[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_BRAF0!=0 & LL_BRAF1!=0 ) {
@@ -449,12 +391,12 @@ MUTRUN <- function(drug_list) {
 		}
 		print("Plotting Mutant")
 		if (is.character(MOD_NRAS1)==F) {
-			Y_VALS <- FIT_NRAS1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS1["xmid","Estimate"]) / FIT_NRAS0["scal","Estimate"] ) )
+			Y_VALS <- FIT_NRAS1["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS1["xmid","Estimate"]) / FIT_NRAS1["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[1], lwd=6, lty=2)
 		}
 		print("Plotting Wildtype")
 		if (is.character(MOD_NRAS0)==F) {
-			Y_VALS <- FIT_NRAS0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS0["xmid","Estimate"]) / FIT_NRAS1["scal","Estimate"] ) )
+			Y_VALS <- FIT_NRAS0["Asym","Estimate"] / ( 1 + exp( -(X_VALS - FIT_NRAS0["xmid","Estimate"]) / FIT_NRAS0["scal","Estimate"] ) )
 			points(X_VALS,Y_VALS, type="l", col=FIT_COLS.NRAS[3], lwd=6, lty=2)
 		}
 		if ( LL_ALL!=0 & LL_NRAS0!=0 & LL_NRAS1!=0 ) {
@@ -474,13 +416,26 @@ MUTRUN <- function(drug_list) {
 ## Potential Drugs of Interest
 DRUG_LIST <- names(DAT.2)[7:134]
 # DRUGS.pref <- c("Trametinib","MEK162","Palbociclib","MLN0128","GSK2141795")
+DRUGS.priority <- c("MLN9708","Palbociclib","Dacomitinib","MEK162","Vorinostat","IrinotecanHCl","TopotecanHCl","Bosutinib","Crizotinib","Sunitinib","Sorafenib")
 DRUGS.pref2 <- c("Trametinib","MEK162","PD325901","Palbociclib","MLN0128","INK128","OSI027","Everolimus","Sirilimus","Temsirilimus","GSK2141795")
 DRUGS.ccle <- c("Topotecan","Nilotinib","Lapatinib","Irinotecan","Erlotinib","Sorafenib")
 DRUGS.prev <- DRUG_LIST[ c(4,11,17,18,19,21,23,33,41,47,49,64,66,69,73,79,96,100,101,112,119,122,125,126) ]
 DRUGS.fit <- DRUG_LIST[ c(11,18,33,47,69,122,126) ]
 DRUGS.gen <- c("Cabozantinib","Dacomitinib","Etoposide","MLN2480","Palbociclib","Sunitinib","Vorinostat")
 DRUGS.su2c <- c("Adriamycin","Bortezomib","Carboplatin","Dacarbazine","Dasatinib","Erlotinib","Etoposide","Gemcitabine","Imatinib","Interferon","Paclitaxel","Pemetrexed","Sorafenib","Temozolomide","Vorinostat","MLN8237","Alisertib","MLN9708","PF00299804","Dacomitin","PD0332991","Palbociclib","PLX3397","MEK162","BGJ398","Cometriq","Cabozantinib","GSK1120212","Trametinib","GSK2141795","AMG337","LY2157299","MLN1117","MLN0128","INK128","MLN2480","LEE011","MEK162","Axatinib","Bosulif","Bosutinib","Sutent","Sunitinib","Torisel","Temsirolimus","Xalkori","Crizotinib")
-DRUGS.all <- Reduce( union, list( DRUGS.pref2, DRUGS.ccle, DRUGS.prev, DRUGS.fit, DRUGS.gen, DRUGS.su2c) )
+DRUGS.all <- Reduce( union, list( DRUGS.priority, DRUGS.pref2, DRUGS.ccle, DRUGS.prev, DRUGS.fit, DRUGS.gen, DRUGS.su2c) )
+
+## Priority Drug List
+ # Get actual names used for Drugs on a list (WHICH_LIST)
+WHICH_LIST <- DRUGS.all
+drug_list <- c()
+for (drug in WHICH_LIST) {
+	drug_list <- c( drug_list, DRUG_LIST[grep(drug,DRUG_LIST)] )
+}
+drug_list <- unique( drug_list )
+ # Run all drugs
+MUTRUN(drug_list)
+MUTRUN(drug_list[16:length(drug_list)])
 
 ## Get actual names used for Drugs on a list (WHICH_LIST)
 WHICH_LIST <- DRUGS.all
@@ -507,3 +462,19 @@ MUTRUN(drug_list)
 #################################################################
 ## END OF DOC ###################################################
 #################################################################
+
+
+png(paste(PathToSave,"PL_1-GEX_Ind_Fit.png",sep=""), width=1250,height=1050,pointsize=24)
+TEST <- nlsList( Resp ~ SSlogis( Dose, Asym, xmid, scal ) | Cell, data=DAT.3, start=START, subset=which(!is.na(DAT.3$Resp)) )
+IND_COEF <- coef(TEST)
+COLS.list <- c("firebrick2","chocolate2","gold2","springgreen2","steelblue2","slateblue3","black")
+COLS <- colorRampPalette(COLS.list)(nrow(IND_COEF))
+plot(0,0,type="n", xlim=range(X_VALS), ylim=c(0,120), xlab="Concentration log10(mM)", ylab="% Cell Viability", main=paste("Individual Dose-Resp - ",DOI,sep=""))
+abline( h=seq(0,200,20), col="grey50", lty=c(1,2,2,2,2,1,2,2,2,2,1) )
+abline( v=seq(-3,3,1), col="grey50", lty=2 )
+points(DAT.3[,"Dose"],DAT.3[,"Resp"], pch="+", col="grey70" )
+for (i in 1:nrow(IND_COEF) ) {
+	Y_VALS <- IND_COEF$Asym[i] / ( 1 + exp( -(X_VALS - IND_COEF$xmid[i]) / IND_COEF$scal[i] ) )	
+	points(X_VALS,Y_VALS, type="l", col=COLS[i], lwd=3 )
+}
+dev.off()

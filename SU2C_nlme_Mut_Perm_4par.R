@@ -1,6 +1,6 @@
 ## SU2C Data: Logistic Fit, permuting for significance ##
 ## Mixed Effects Models vs Mutation Status ##
-## 3 Parameter Fit ##
+## 4 Parameter Fit ##
 ## Kristopher Standish ##
 ## January 7, 2014 ##
 
@@ -99,64 +99,6 @@ iline <- as.numeric(factor(iline1))
 DAT.2 <- data.frame( DAT.comp, iline, Batch=rep(2,nrow(DAT.comp)) )
 BATCH_1 <- which( DAT.comp$Cell %in% OLD_LINES )
 DAT.2$Batch[BATCH_1] <- 1
-
-# #################################################################
-# ## LOAD GENE EXPRESSION DATA ####################################
-# #################################################################
-
-# TOP <- GTOP <- list()
-
-# ## Load Top Genes and Expression Data
-
-#  # Top Gene Names
-# TOP$dox <- read.table(paste(PathToTop2,"doxorubicin_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$dox) <- c("Probe","Gene","P")
-# TOP$iri <- read.table(paste(PathToTop3,"Irinotecan_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$iri) <- c("Probe","Gene","P")
-# TOP$top <- read.table(paste(PathToTop3,"Topotecan_top50_Genes_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(TOP$top) <- c("Probe","Gene","P")
-
-#  # Top Expression Values
-# GTOP$dox.1 <- read.table(paste(PathToTop2,"doxorubicin_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$dox.1)[1] <- c("Probe")
-# GTOP$iri.1 <- read.table(paste(PathToTop3,"Irinotecan_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$iri.1)[1] <- c("Probe")
-# GTOP$top.1 <- read.table(paste(PathToTop3,"Topotecan_top50_GEX_allcelllines.txt",sep=""),sep="\t",header=T)
-# names(GTOP$top.1)[1] <- c("Probe")
-
-# #################################################################
-# ## ORGANIZE GENE EXPRESSION DATA ################################
-# #################################################################
-
-# ## Specify Drug Names
-# ALL_DRUGS <- colnames(DAT.1)[7:134]
-# BTOP <- KEY <- GEX <- KEYS <- list()
-#  # and Shorthand
-# DRUG_SHORT_HAND <- c("dox","iri","top")
-# names(DRUG_SHORT_HAND) <- c( "DoxorubicinHCl","IrinotecanHCl","TopotecanHCl")
-
-# ## Loop through Drugs of Interest
-# for ( drug in DRUG_SHORT_HAND ) {
-# 	## Create Gene-Probe Key
-# 	KEY[[drug]] <- TOP[[drug]][which(!duplicated(TOP[[drug]]$Probe)),c("Gene","Probe")]
-# 	KEY[[drug]] <- data.frame(KEY[[drug]],TAG=paste(KEY[[drug]]$Gene,KEY[[drug]]$Probe,sep="_"))
-# 	KEY[[drug]]$TAG <- gsub("---",".",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub("-",".",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub(" ","",KEY[[drug]]$TAG, fixed=T)
-# 	KEY[[drug]]$TAG <- gsub("///",".",KEY[[drug]]$TAG, fixed=T)	
-	
-# 	## Give Expression Values Gene Names
-# 	GTOP[[drug]] <- merge(KEY[[drug]],GTOP[[paste(drug,".1",sep="")]])
-# 	BTOP[[drug]] <- data.frame(GTOP[[drug]][,4:ncol(GTOP[[drug]])])
-# 	for ( which_gene in 1:nrow(BTOP[[drug]]) ) {
-# 		BTOP[[drug]][which_gene,] <- as.numeric( as.numeric(BTOP[[drug]][which_gene,]) > median(as.numeric(BTOP[[drug]][which_gene,])) )
-# 	} # apply(GTOP[,2:ncol(GTOP)],2,median) )
-# 	rownames(BTOP[[drug]]) <- GTOP[[drug]]$TAG
-
-# 	## Compile GEX data into list
-# 	GEX[[drug]] <- t( BTOP[[drug]] )
-# 	KEYS[[drug]] <- data.frame(GTOP[[drug]][,1:3],PAREN=paste(GTOP[[drug]][,2]," (",GTOP[[drug]][,1],")",sep=""))
-# }
 
 #################################################################
 ## USE NLME TO FIT LOGISTIC MODELS ##############################
@@ -506,6 +448,7 @@ for (drug in WHICH_LIST) {
 drug_list <- unique( drug_list )
  # Run all drugs
 MUTRUN(drug_list)
+MUTRUN( drug_list[13:length(drug_list)] )
 
 
 
